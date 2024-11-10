@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "artistryxx",
+    "slug": "artistryxx",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+     
+    },
+    "ios": {
+
+    },
+    "android": {
+
+    },
+    "web": {
+    }
+  }
+}
