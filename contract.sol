@@ -14,36 +14,46 @@ contract ContentPlatform {
 
     mapping(uint => Content) public contents;
     mapping(address => uint) public balances;
-
     uint public contentCounter;
 
     event ContentPublished(uint contentId, address indexed creator, uint price);
-    event ContentPurchased(uint contentId, address indexed buyer);
+    event ContentPurchased(uint contentId, address indexed buyer, uint price);
 
-    // 注册发布内容
+    // Function to publish content
     function publishContent(string memory _title, string memory _contentHash, uint _price) public {
+        require(bytes(_title).length > 0, "Title is required");
+        require(bytes(_contentHash).length > 0, "Content hash is required");
+        require(_price > 0, "Price must be greater than zero");
+
         contentCounter++;
-        contents[contentCounter] = Content(contentCounter, payable(msg.sender), _title, _contentHash, _price, true);
-        
+        contents[contentCounter] = Content({
+            id: contentCounter,
+            creator: payable(msg.sender),
+            title: _title,
+            contentHash: _contentHash,
+            price: _price,
+            forSale: true
+        });
+
         emit ContentPublished(contentCounter, msg.sender, _price);
     }
 
-    // 购买内容
+    // Function to purchase content
     function purchaseContent(uint _contentId) public payable {
         Content storage content = contents[_contentId];
         require(content.forSale, "Content not for sale");
         require(msg.value >= content.price, "Insufficient funds sent");
 
-        // 更新余额
+        // Transfer funds to creator's balance
         balances[content.creator] += msg.value;
 
-        // 停止售卖
+        // Mark content as sold
         content.forSale = false;
 
-        emit ContentPurchased(_contentId, msg.sender);
+        emit ContentPurchased(_contentId, msg.sender, content.price);
     }
 
-    // 提取余额
+    // Function for creator to withdraw their balance
     function withdrawBalance() public {
         uint balance = balances[msg.sender];
         require(balance > 0, "No balance to withdraw");
