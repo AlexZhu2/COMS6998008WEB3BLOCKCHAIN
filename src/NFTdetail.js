@@ -115,7 +115,7 @@ function NFTDetail({ nfts }) {
             const contract = new ethers.Contract(build.address, build.abi, signer);
 
             const priceInWei = ethers.parseEther(nft.price.toString());
-            const tx = await contract.buyToken(nft.tokenId, { value: priceInWei });
+            const tx = await contract.executeSale(nft.tokenId, { value: priceInWei });
 
             await tx.wait();
             setSuccess("Purchase successful!");
