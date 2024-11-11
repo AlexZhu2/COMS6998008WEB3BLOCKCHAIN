@@ -30,8 +30,14 @@
 
 /* Add to your CSS file */
 #wallet-dropdown::after {
-  color: #198754;  /* Bootstrap's success color to match the wallet address */
+  color: #198754;
+  /* Bootstrap's success color to match the wallet address */
   margin-left: 5px;
+}
+
+.nft-card-link {
+  text-decoration: none;
+  width: 8rem;
 }
 
 .dropdown-toggle::after {
@@ -42,6 +48,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }

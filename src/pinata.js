@@ -78,3 +78,17 @@ export const pinJSONToIPFS = async (json) => {
         };
     });
 };
+
+export const GetIpfsUrlFromPinata = (pinataUrl) => {
+    if (!pinataUrl) return '';
+    
+    // Remove ipfs:// prefix if it exists
+    let path = pinataUrl.replace('ipfs://', '');
+    
+    // Choose a reliable IPFS gateway
+    return `${path}`;
+    // Alternative gateways:
+    // return `https://ipfs.io/ipfs/${path}`;
+    // return `https://cloudflare-ipfs.com/ipfs/${path}`;
+    // return `https://dweb.link/ipfs/${path}`;
+};
