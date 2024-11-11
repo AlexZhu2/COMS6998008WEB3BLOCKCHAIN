@@ -1,57 +1,55 @@
+import React from 'react';
 import { Card } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
-import { GetIpfsUrlFromPinata } from "./pinata";
+import { useNavigate } from 'react-router-dom';
 
-function NFTTile (data) {
-    const newTo = {
-        pathname:"/nftPage/"+data.data.tokenId
+function NFTTile({ data }) {
+    const navigate = useNavigate();
+
+    if (!data || !data.tokenId) {
+        return null;
     }
 
-    const IPFSUrl = GetIpfsUrlFromPinata(data.data.image);
+    const handleClick = () => {
+        navigate(`/nftPage/${data.tokenId}`);
+    };
+
+    const isListed = data.seller?.toLowerCase() !== data.owner?.toLowerCase();
 
     return (
-        <div style={{ width: '8rem' }}>
-            <Link 
-                to={newTo} 
-                style={{ 
-                    textDecoration: 'none',
-                    display: 'block'
-                }}
-            >
-                <Card className="h-100 bg-dark text-white">
-                    <Card.Img 
-                        variant="top" 
-                        src={IPFSUrl} 
-                        style={{ height: '8rem', objectFit: 'cover' }}
-                        crossOrigin="anonymous"
-                    />
-                    <Card.Body className="p-2">
-                        <Card.Title 
-                            className="mb-1" 
-                            style={{ 
-                                fontSize: '0.75rem',
-                                fontWeight: 'bold',
-                                marginBottom: '0.25rem',
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis'
-                            }}
-                        >
-                            {data.data.name}
-                        </Card.Title>
-                        <Card.Text 
-                            style={{ 
-                                fontSize: '0.7rem',
-                                margin: 0
-                            }}
-                        >
-                            {data.data.price} ETH
-                        </Card.Text>
-                    </Card.Body>
-                </Card>
-            </Link>
-        </div>
-    )
+        <Card 
+            className="bg-dark text-white h-100" 
+            onClick={handleClick}
+            style={{ cursor: 'pointer' }}
+        >
+            {data.image && (
+                <Card.Img 
+                    variant="top" 
+                    src={data.image}
+                    alt={data.name || 'NFT'}
+                    style={{ 
+                        height: '200px',
+                        objectFit: 'contain',
+                        backgroundColor: '#1a1a1a'
+                    }}
+                    className="p-2"
+                    crossOrigin="anonymous"
+                />
+            )}
+            <Card.Body>
+                <Card.Title>{data.name || 'Unnamed NFT'}</Card.Title>
+                <div className="d-flex justify-content-between align-items-center">
+                    <span className="text-primary">
+                        {data.price} ETH
+                    </span>
+                    {isListed && (
+                        <span className="badge bg-success">
+                            Listed
+                        </span>
+                    )}
+                </div>
+            </Card.Body>
+        </Card>
+    );
 }
 
 export default NFTTile;

@@ -7,7 +7,8 @@ import MarketMain from './marketmain';
 import NFTDetail from './NFTdetail';
 import { GetIpfsUrlFromPinata } from './pinata';
 import Navbar from './navbar';
-
+import Personal from './personal';
+import Upload from './upload';
 function App() {
     const [nfts, setNfts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -65,6 +66,8 @@ function App() {
                             path="/nftPage/:tokenId" 
                             element={<NFTDetail nfts={nfts} />} 
                         />
+                        <Route path="/personal" element={<Personal />} />
+                        <Route path="/upload" element={<Upload />} />
                     </Routes>
                 )}
             </div>

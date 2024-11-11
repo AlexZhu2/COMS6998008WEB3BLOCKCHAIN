@@ -152,7 +152,7 @@ function MyNavbar() {
           <Nav className="me-auto">
             <Nav.Link as={Link} to="/">Home</Nav.Link>
             <Nav.Link as={Link} to="/upload">Upload Product</Nav.Link>
-            <Nav.Link as={Link} to="/my-products">My Products</Nav.Link>
+            <Nav.Link as={Link} to="/personal">My Products</Nav.Link>
           </Nav>
           <Nav>
             {renderWalletButton()}
