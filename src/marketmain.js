@@ -75,11 +75,14 @@ function MarketMain({ nfts }) {
         <Container className="py-5">
             <h2 className="text-white mb-4">NFT Marketplace</h2>
             <Row xs={1} sm={2} md={3} lg={4} className="g-4">
-                {displayNFTs.map((nft, idx) => (
-                    <Col key={`${nft.tokenId}-${idx}`}>
-                        <NFTTile data={nft} />
-                    </Col>
-                ))}
+                {displayNFTs.map((nft, idx) => {
+                    console.log("nft", nft);
+                    return (
+                        <Col key={`${nft.tokenId}-${idx}`}>
+                            <NFTTile data={nft} />
+                        </Col>
+                    )
+        })}
             </Row>
         </Container>
     );

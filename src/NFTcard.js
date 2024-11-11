@@ -1,6 +1,8 @@
 import React from 'react';
 import { Card } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import { ethers } from 'ethers';
+import build from './build.json';
 
 function NFTTile({ data }) {
     const navigate = useNavigate();
@@ -9,11 +11,23 @@ function NFTTile({ data }) {
         return null;
     }
 
+    const getTokenInfo = async () => {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const contract = new ethers.Contract(build.address, build.abi, signer);
+
+        // Get the current token data from contract
+        const listedToken = await contract.getListedTokenForId(data.tokenId);
+        return listedToken;
+    };
+
     const handleClick = () => {
         navigate(`/nftPage/${data.tokenId}`);
     };
 
-    const isListed = data.seller?.toLowerCase() !== data.owner?.toLowerCase();
+    console.log("data", data);
+    const listedToken = getTokenInfo();
+    const isListed = listedToken.sold === false;
 
     return (
         <Card 
@@ -41,9 +55,13 @@ function NFTTile({ data }) {
                     <span className="text-primary">
                         {data.price} ETH
                     </span>
-                    {isListed && (
+                    {isListed ? (
                         <span className="badge bg-success">
                             Listed
+                        </span>
+                    ) : (
+                        <span className="badge bg-danger">
+                            Sold
                         </span>
                     )}
                 </div>

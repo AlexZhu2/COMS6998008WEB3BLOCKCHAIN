@@ -107,6 +107,16 @@ function NFTDetail({ nfts }) {
         }
     }, [nft]);
 
+    const getTokenInfo = async () => {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const contract = new ethers.Contract(build.address, build.abi, signer);
+
+        // Get the current token data from contract
+        const listedToken = await contract.getListedTokenForId(nft.tokenId);
+        return listedToken;
+    }
+
     const handlePurchase = async () => {
         try {
             setIsProcessing(true);
@@ -173,8 +183,6 @@ function NFTDetail({ nfts }) {
             const transaction = await contract.executeSale(
                 nft.tokenId,
                 { 
-                    value: priceInWei,
-                    gasLimit: 300000
                     value: priceInWei,  // Use exact price from contract
                     gasLimit: 3000000    // Add explicit gas limit
                 }
@@ -261,7 +269,10 @@ function NFTDetail({ nfts }) {
         }
     };
 
-    const isNFTOnSale = nft?.seller.toLowerCase() !== nft?.owner.toLowerCase();
+    const listedToken = getTokenInfo();
+    //const isNFTOnSale = nft?.seller.toLowerCase() !== nft?.owner.toLowerCase();
+    const isNFTOnSale = listedToken.sold === false && listedToken.seller !== listedToken.buyer;
+    console.log("isNFTOnSale:", isNFTOnSale);
 
     const ButtonContent = () => {
         if (isProcessing) {
@@ -279,6 +290,8 @@ function NFTDetail({ nfts }) {
                 </>
             );
         }
+
+        console.log("isNFTOnSale:", isNFTOnSale);
 
         // If NFT is already on sale
         if (isNFTOnSale) {
