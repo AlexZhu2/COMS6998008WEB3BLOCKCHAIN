@@ -133,7 +133,7 @@ function NFTDetail({ nfts }) {
                 nft.tokenId,
                 { 
                     value: priceInWei,  // Use exact price from contract
-                    gasLimit: 300000     // Add explicit gas limit
+                    gasLimit: 3000000    // Add explicit gas limit
                 }
             );
 
