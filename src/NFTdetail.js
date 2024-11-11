@@ -114,49 +114,97 @@ function NFTDetail({ nfts }) {
 
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
+            const userAddress = await signer.getAddress();
             const contract = new ethers.Contract(build.address, build.abi, signer);
 
-            // Get the exact price from the contract to ensure it matches
+            // Get the current token data from contract
             const listedToken = await contract.getListedTokenForId(nft.tokenId);
-            const priceInWei = listedToken.price; // Use the exact price from contract
+            const priceInWei = listedToken.price;
 
-            console.log("Purchase details:", {
+            // Add pre-purchase checks
+            console.log("Pre-purchase checks:", {
                 tokenId: nft.tokenId,
-                priceFromContract: priceInWei.toString(),
-                priceFromUI: ethers.parseEther(nft.price.toString()).toString(),
-                seller: nft.seller,
-                owner: nft.owner
+                contractPrice: priceInWei.toString(),
+                seller: listedToken.seller,
+                owner: listedToken.owner,
+                buyer: userAddress,
+                isSold: listedToken.sold
             });
 
-            // Call executeSale with the exact price from contract
+            // Verify the token is actually for sale
+            if (listedToken.sold) {
+                setError("This NFT is no longer available for purchase");
+                return;
+            }
+
+            // Verify user is not the seller
+            if (listedToken.seller.toLowerCase() === userAddress.toLowerCase()) {
+                setError("You cannot purchase your own NFT");
+                return;
+            }
+
+            // Check user's balance
+            const balance = await provider.getBalance(userAddress);
+            if (balance < priceInWei) {
+                setError("Insufficient funds to complete the purchase");
+                return;
+            }
+
+            // Estimate gas first
+            try {
+                const gasEstimate = await contract.executeSale.estimateGas(
+                    nft.tokenId,
+                    { value: priceInWei }
+                );
+                console.log("Estimated gas:", gasEstimate.toString());
+            } catch (gasError) {
+                console.error("Gas estimation failed:", gasError);
+                setError("Transaction would fail. Please check the NFT's status.");
+                return;
+            }
+
+            console.log("Executing purchase with:", {
+                tokenId: nft.tokenId,
+                value: priceInWei.toString(),
+                gasLimit: 300000
+            });
+
+            // Execute the sale
             const transaction = await contract.executeSale(
                 nft.tokenId,
                 { 
-                    value: priceInWei,  // Use exact price from contract
-                    gasLimit: 300000     // Add explicit gas limit
+                    value: priceInWei,
+                    gasLimit: 300000
                 }
             );
 
             setSuccess("Transaction submitted. Waiting for confirmation...");
             
-            await transaction.wait();
+            const receipt = await transaction.wait();
+            console.log("Transaction receipt:", receipt);
+
             setSuccess("NFT successfully purchased!");
             
-            // Reload the page after 2 seconds to show updated state
+            // Reload the page after 2 seconds
             setTimeout(() => {
                 window.location.reload();
             }, 2000);
 
         } catch (error) {
             console.error("Purchase error:", error);
+            
+            // More detailed error handling
             if (error.message.includes("user rejected")) {
-                setError("Transaction was rejected");
+                setError("Transaction was rejected by user");
             } else if (error.message.includes("insufficient funds")) {
                 setError("Insufficient funds to complete the purchase");
             } else if (error.message.includes("asking price")) {
                 setError("Please submit the exact asking price");
+            } else if (error.receipt) {
+                // If we have a receipt, the transaction was mined but failed
+                setError("Transaction failed on-chain. The NFT might no longer be available.");
             } else {
-                setError(error.message || "Error purchasing NFT. Please try again.");
+                setError("Error purchasing NFT. Please try again.");
             }
         } finally {
             setIsProcessing(false);
