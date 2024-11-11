@@ -34,7 +34,7 @@ function Personal() {
                     price: ethers.formatEther(nft.price),
                     sold: nft.sold
                 }));
-
+                console.log("Transformed NFTs:", transformedNFTs);
                 // Fetch metadata for each NFT
                 const nftsWithMetadata = await Promise.all(
                     transformedNFTs.map(async (nft) => {

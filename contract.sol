@@ -102,7 +102,7 @@ contract ArtystryXMarketplace is ERC721URIStorage {
         uint256 price = idToListedToken[tokenId].price;
         require(msg.value == price, "Please submit the asking price in order to complete the purchase");
         address payable seller = idToListedToken[tokenId].seller;
-        idToListedToken[tokenId].owner = payable(msg.sender);
+        idToListedToken[tokenId].seller = payable(msg.sender);
         idToListedToken[tokenId].sold = true;
         _itemsSold.increment();
         _transfer(address(this), msg.sender, tokenId);
