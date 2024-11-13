@@ -61,7 +61,7 @@ function NFTTile({ data }) {
                         </span>
                     ) : (
                         <span className="badge bg-danger">
-                            Sold
+                            Not Listed
                         </span>
                     )}
                 </div>
