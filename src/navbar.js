@@ -1,7 +1,9 @@
 import React from 'react';
 import { Navbar, Nav, Container, NavDropdown } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import { FaHome, FaUpload, FaUserAlt, FaWallet, FaEthereum } from 'react-icons/fa'; 
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './navbar.css';
 
 function MyNavbar() {
   const [buttonText, setButtonText] = React.useState('Connect Wallet');
@@ -106,53 +108,66 @@ function MyNavbar() {
   const renderWalletButton = () => {
     if (isConnected) {
       return (
-        <Nav className="d-flex align-items-center">
-          <Nav.Link 
-            className="text-success me-0 pe-0"
+        <Nav className="d-flex align-items-center wallet-connected">
+          <Nav.Link
+            className="text-success me-0 pe-0 wallet-button"
             style={{ cursor: 'default' }}
           >
+            <FaWallet style={{ marginRight: '8px' }} />
             {buttonText}
           </Nav.Link>
-          <NavDropdown 
-            title="" 
+          <NavDropdown
+            title={<FaEthereum className="text-secondary" />}
             id="wallet-dropdown"
             align="end"
+            className="wallet-dropdown"
           >
             <NavDropdown.Item onClick={handleDisconnect}>
+              <FaWallet style={{ marginRight: '8px' }} />
               Disconnect Wallet
             </NavDropdown.Item>
-            <NavDropdown.Item 
+            <NavDropdown.Item
               href={`https://sepolia.etherscan.io/address/${userAddress}`}
               target="_blank"
             >
+              <FaEthereum style={{ marginRight: '8px' }} />
               View on Etherscan
             </NavDropdown.Item>
           </NavDropdown>
         </Nav>
       );
     }
-    
+  
     return (
-      <Nav.Link 
+      <Nav.Link
         onClick={handleConnectWallet}
-        className="text-danger"
-        style={{ cursor: 'pointer' }}
+        className="text-danger wallet-connect"
       >
+        <FaWallet style={{ marginRight: '8px' }} />
         Connect Wallet
       </Nav.Link>
     );
   };
 
   return (
-    <Navbar bg="light" expand="lg">
+    <Navbar bg="dark" variant="dark" expand="lg" sticky="top" className="shadow">
       <Container>
-        <Navbar.Brand as={Link} to="/">ArtistryX</Navbar.Brand>
+        {/* <Navbar.Brand as={Link} to="/">ArtistryX</Navbar.Brand> */}
+        <Navbar.Brand as={Link} to="/" className="brand-logo">
+          ArtistryX
+        </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link as={Link} to="/">Home</Nav.Link>
-            <Nav.Link as={Link} to="/upload">Upload Product</Nav.Link>
-            <Nav.Link as={Link} to="/personal">My Products</Nav.Link>
+            <Nav.Link as={Link} to="/">
+              <FaHome style={{ marginRight: '8px' }} /> Home
+            </Nav.Link>
+            <Nav.Link as={Link} to="/upload">
+              <FaUpload style={{ marginRight: '8px' }} /> Upload Product
+            </Nav.Link>
+            <Nav.Link as={Link} to="/personal">
+              <FaUserAlt style={{ marginRight: '8px' }} /> My Products
+            </Nav.Link>
           </Nav>
           <Nav>
             {renderWalletButton()}

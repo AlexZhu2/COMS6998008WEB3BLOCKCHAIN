@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Form, Button, Container } from 'react-bootstrap';
+import { Form, Button, Container, Card } from 'react-bootstrap';
 import { pinFileToIPFS, pinJSONToIPFS } from './pinata';
 import build from './build';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './upload.css';
 const ethers = require('ethers');
 
 function UploadForm() {
@@ -110,54 +111,73 @@ function UploadForm() {
     }
 
     return (
-        <Container className="mt-5">
-            <h2>Upload Product</h2>
-            <Form onSubmit={handleSubmit}>
+        <Container className="upload-page mt-5">
+            <Card className="upload-card p-4">
+                <h2 className="text-center upload-title">Upload Artwork</h2>
+                <p className="text-center upload-subtitle">
+                    Provide the details for your NFT listing.
+                </p>
+                <Form onSubmit={handleSubmit} className="mt-4">
 
-                {/* Image Upload Field */}
-                <Form.Group controlId="formFile" className="mb-3">
-                    <Form.Label>Upload Image</Form.Label>
-                    <Form.Control type="file" accept="image/*" onChange={handleImageChange} />
-                </Form.Group>
+                    {/* Image Upload Field */}
+                    <Form.Group controlId="formFile" className="mb-3">
+                        <Form.Label className="upload-label">Image File</Form.Label>
+                        <Form.Control 
+                            type="file" 
+                            accept="image/*" 
+                            onChange={handleImageChange} 
+                            className="upload-input"
+                        />
+                    </Form.Group>
 
-                <Form.Group controlId="formProductName" className="mb-3">
-                    <Form.Label>Product Name</Form.Label>
-                    <Form.Control
-                        type="text"
-                        placeholder="Enter product name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                    />
-                </Form.Group>
-                {/* Product Detail Field */}
-                <Form.Group controlId="formProductDetail" className="mb-3">
-                    <Form.Label>Product Detail</Form.Label>
-                    <Form.Control
-                        type="text"
-                        placeholder="Enter product details"
-                        value={details}
-                        onChange={(e) => setDetails(e.target.value)}
-                    />
-                </Form.Group>
+                    {/* Artwork Name */}
+                    <Form.Group controlId="formProductName" className="mb-3">
+                        <Form.Label className="upload-label">Name</Form.Label>
+                        <Form.Control
+                            type="text"
+                            placeholder="Enter artwork name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            className="upload-input"
+                        />
+                    </Form.Group>
 
-                {/* Product Price Field */}
-                <Form.Group controlId="formProductPrice" className="mb-3">
-                    <Form.Label>Product Price</Form.Label>
-                    <Form.Control
-                        type="number"
-                        placeholder="Enter product price"
-                        value={price}
-                        onChange={(e) => setPrice(e.target.value)}
-                    />
-                </Form.Group>
+                    {/* Artwork Description */}
+                    <Form.Group controlId="formProductDetail" className="mb-3">
+                        <Form.Label className="upload-label">Description</Form.Label>
+                        <Form.Control
+                            as="textarea"
+                            rows={3}
+                            placeholder="Describe your artwork"
+                            value={details}
+                            onChange={(e) => setDetails(e.target.value)}
+                            className="upload-input"
+                        />
+                    </Form.Group>
 
-                {/* Submit Button */}
-                <Button variant="primary" type="submit">
-                    Upload Product
-                </Button>
-            </Form>
+                    {/* Artwork Price */}
+                    <Form.Group controlId="formProductPrice" className="mb-3">
+                        <Form.Label className="upload-label">Price (ETH)</Form.Label>
+                        <Form.Control
+                            type="number"
+                            placeholder="Enter price in ETH"
+                            value={price}
+                            onChange={(e) => setPrice(e.target.value)}
+                            className="upload-input"
+                        />
+                    </Form.Group>
+
+                    {/* Submit Button */}
+                    <div className="text-center">
+                        <Button variant="primary" type="submit" className="upload-button">
+                            Submit
+                        </Button>
+                    </div>
+                </Form>
+            </Card>
         </Container>
     );
+
 }
 
 export default UploadForm;

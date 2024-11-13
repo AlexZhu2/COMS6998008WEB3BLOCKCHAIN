@@ -3,6 +3,7 @@ import { Card } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import build from './build.json';
+import './NFTcard.css';
 
 function NFTTile({ data }) {
     const navigate = useNavigate();
@@ -31,43 +32,38 @@ function NFTTile({ data }) {
 
     return (
         <Card 
-            className="bg-dark text-white h-100" 
-            onClick={handleClick}
-            style={{ cursor: 'pointer' }}
+          className="nft-card h-100" 
+          onClick={handleClick}
         >
-            {data.image && (
-                <Card.Img 
-                    variant="top" 
-                    src={data.image}
-                    alt={data.name || 'NFT'}
-                    style={{ 
-                        height: '200px',
-                        objectFit: 'contain',
-                        backgroundColor: '#1a1a1a'
-                    }}
-                    className="p-2"
-                    crossOrigin="anonymous"
-                />
-            )}
-            <Card.Body>
-                <Card.Title>{data.name || 'Unnamed NFT'}</Card.Title>
-                <div className="d-flex justify-content-between align-items-center">
-                    <span className="text-primary">
-                        {data.price} ETH
-                    </span>
-                    {isListed ? (
-                        <span className="badge bg-success">
-                            Listed
-                        </span>
-                    ) : (
-                        <span className="badge bg-danger">
-                            Not Listed
-                        </span>
-                    )}
-                </div>
-            </Card.Body>
+          {data.image && (
+            <div className="nft-card-image-wrapper">
+              <Card.Img 
+                src={data.image}
+                alt={data.name || 'NFT'}
+                className="nft-card-image"
+                crossOrigin="anonymous"
+              />
+              <div className="nft-card-image-overlay"></div>
+            </div>
+          )}
+          <Card.Body className="nft-card-body">
+            <Card.Title className="nft-card-title">
+              {data.name || 'Unnamed NFT'}
+            </Card.Title>
+            <div className="d-flex justify-content-between align-items-center">
+              <span className="nft-card-price">
+                {data.price} ETH
+              </span>
+              {isListed ? (
+                <span className="badge nft-badge bg-success">Listed</span>
+              ) : (
+                <span className="badge nft-badge bg-danger">Not Listed</span>
+              )}
+            </div>
+          </Card.Body>
         </Card>
-    );
+      );
+      
 }
 
 export default NFTTile;

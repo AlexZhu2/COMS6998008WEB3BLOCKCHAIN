@@ -1,0 +1,28 @@
+/* Fullscreen Background */
+.market-main {
+  min-height: 100vh; /* Ensures the page fills the entire viewport */
+  background-color: #2f3941; /* Light gray background */
+  padding-top: 10px; /* Adds spacing from the top */
+  padding-bottom: 50px; /* Adds spacing at the bottom */
+  display: flex;
+  flex-direction: column;
+  justify-content: top;
+  align-items: center;
+}
+
+/* Title Styling */
+.market-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 3rem; /* Adds space between the title and NFT grid */
+  text-transform: uppercase;
+  font-family: 'Poppins', sans-serif;
+  color: #d3dbe2; /* Dark gray for contrast */
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* NFT Grid */
+.g-4 {
+  width: 100%; /* Ensures grid spans the full width */
+  max-width: 1200px; /* Adds a max width for better layout control */
+}

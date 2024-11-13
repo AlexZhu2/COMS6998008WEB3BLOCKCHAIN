@@ -97,7 +97,7 @@ function Personal() {
         <Container className="py-5">
             <div className="text-center mb-5">
                 <h1 className="text-white">My Collection</h1>
-                <div className="text-muted">
+                <div className="text-white">
                     View and manage your NFTs
                 </div>
             </div>

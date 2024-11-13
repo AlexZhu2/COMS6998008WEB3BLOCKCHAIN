@@ -1,0 +1,63 @@
+/* Navbar.css */
+.brand-logo {
+    font-family: 'Pacifico', cursive; 
+    font-size: 1.8rem;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.9);
+    transition: color 0.3s;
+}
+
+.navbar-dark .navbar-nav .nav-link:hover {
+    color: #ffd700; 
+}
+
+.navbar-dark .navbar-toggler {
+    border-color: #ffd700;
+}
+
+.navbar-shadow {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-dark .nav-link {
+    margin-right: 20px;
+}
+
+/* Navbar.css */
+
+/* Wallet Button */
+.wallet-button {
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    transition: color 0.3s;
+  }
+  
+  .wallet-button:hover {
+    color: #ffd700; /* Highlight on hover */
+  }
+  
+  /* Dropdown Customization */
+  .wallet-dropdown .dropdown-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    transition: background-color 0.3s;
+  }
+  
+  .wallet-dropdown .dropdown-item:hover {
+    background-color: #f8f9fa; /* Light hover background */
+  }
+  
+  /* Connect Wallet Button */
+  .wallet-connect {
+    font-weight: bold;
+    transition: color 0.3s;
+  }
+  
+  .wallet-connect:hover {
+    color: #ffd700; /* Highlight on hover */
+  }
+  

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
 import NFTTile from './NFTcard';
+import './marketmain.css';
 
 function MarketMain({ nfts }) {
     const [loading, setLoading] = useState(true);
@@ -72,20 +73,21 @@ function MarketMain({ nfts }) {
     }
 
     return (
-        <Container className="py-5">
-            <h2 className="text-white mb-4">NFT Marketplace</h2>
+        <div className="market-main">
+          <Container className="py-5">
+            <h2 className="text-center market-title">
+              NFT Marketplace
+            </h2>
             <Row xs={1} sm={2} md={3} lg={4} className="g-4">
-                {displayNFTs.map((nft, idx) => {
-                    console.log("nft", nft);
-                    return (
-                        <Col key={`${nft.tokenId}-${idx}`}>
-                            <NFTTile data={nft} />
-                        </Col>
-                    )
-        })}
+              {displayNFTs.map((nft, idx) => (
+                <Col key={`${nft.tokenId}-${idx}`}>
+                  <NFTTile data={nft} />
+                </Col>
+              ))}
             </Row>
-        </Container>
-    );
+          </Container>
+        </div>
+      );
 }
 
 export default MarketMain;
