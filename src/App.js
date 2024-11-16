@@ -9,6 +9,8 @@ import { GetIpfsUrlFromPinata } from './pinata';
 import Navbar from './navbar';
 import Personal from './personal';
 import Upload from './upload';
+import Displayall from './displayall';
+
 function App() {
     const [nfts, setNfts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -40,6 +42,7 @@ function App() {
                     owner: i.owner,
                     image: GetIpfsUrlFromPinata(meta.image),
                     name: meta.name,
+                    // category: meta.category,
                     description: meta.details,
                 }
                 return item;
@@ -68,6 +71,7 @@ function App() {
                         />
                         <Route path="/personal" element={<Personal />} />
                         <Route path="/upload" element={<Upload />} />
+                        <Route path="/displayall" element={<Displayall nfts={nfts}/>} />
                     </Routes>
                 )}
             </div>

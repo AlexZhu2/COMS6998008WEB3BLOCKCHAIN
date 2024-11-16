@@ -11,6 +11,7 @@ function UploadForm() {
     const [details, setDetails] = useState('');
     const [price, setPrice] = useState('');
     const [name, setName] = useState('');
+    const [category, setCategory] = useState('');
     const [fileURL, setFileURL] = useState('');
     const [message, updateMessage] = useState('');
 
@@ -34,11 +35,12 @@ function UploadForm() {
     }
     async function uploadMetadataToIPFS() {
         try {
-            if (!image || !name || !details || !price) {
+            if (!image || !name || !category || !details || !price) {
                 throw new Error("Please fill in all fields");
             }
             const metadata = {
                 name: name,
+                category: category,
                 details: details,
                 price: price,
                 image: fileURL
@@ -72,7 +74,7 @@ function UploadForm() {
             }
 
             const parsedPrice = ethers.parseUnits(price.toString(), 'ether');
-            const metadata = await uploadMetadataToIPFS(name, details, parsedPrice, fileURL);
+            const metadata = await uploadMetadataToIPFS(name, category, details, parsedPrice, fileURL);
 
             // Get provider and signer
             const provider = new ethers.BrowserProvider(window.ethereum);
@@ -102,6 +104,7 @@ function UploadForm() {
             setDetails("");
             setPrice("");
             setName("");
+            setCategory("");
             setFileURL("");
             window.location.reload("/");
         } catch (error) {
@@ -140,6 +143,20 @@ function UploadForm() {
                             onChange={(e) => setName(e.target.value)}
                             className="upload-input"
                         />
+                    </Form.Group>
+
+                    {/* Artwork Category */}
+                    <Form.Group controlId="formProductCategory" className="mb-3">
+                        <Form.Label className="upload-label">Category</Form.Label>
+                        <Form.Control 
+                            as="select"
+                            value={category}
+                            onChange={(e) => setCategory(e.target.value)}
+                            className="upload-input"
+                        >
+                            <option value="visual-arts">Visual Arts</option>
+                            <option value="poems">Poems</option>
+                        </Form.Control>
                     </Form.Group>
 
                     {/* Artwork Description */}

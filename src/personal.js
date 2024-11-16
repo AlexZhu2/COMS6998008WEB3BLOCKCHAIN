@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Card, Alert, Nav } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 import { ethers } from 'ethers';
 import NFTTile from './NFTcard';
 import build from './build.json';
@@ -105,10 +106,13 @@ function Personal() {
             {userNFTs.length === 0 ? (
                 <Card className="bg-dark text-white">
                     <Card.Body className="text-center">
-                        <h5>You don't own any NFTs yet</h5>
-                        <div className="text-muted">
-                            Visit the marketplace to purchase your first NFT!
-                        </div>
+                        <h5>You don't own any NFTs yet ...</h5>
+                        <div>Visit the marketplace to purchase your first NFT!</div>
+                        <Nav className="justify-content-center mt-3">
+                        <Nav.Link as={Link} to="/" className="btn btn-primary" style={{ color: 'green' }}>
+                            Go to marketplace →
+                        </Nav.Link>
+                        </Nav>
                     </Card.Body>
                 </Card>
             ) : (
