@@ -113,16 +113,26 @@ contract ArtystryXMarketplace is ERC721URIStorage {
 
     // Function to resell a token
     function resellToken(uint256 tokenId, uint256 price) public payable {
-        require(idToListedToken[tokenId].owner == msg.sender, "Only item owner can perform this operation");
-        require(msg.value == listingPrice, "Price must be equal to listing price");
-        require(price > 0, "Price must be greater than 0");
+        require(ownerOf(tokenId) == msg.sender, "You must own the token to resell it");
+        require(msg.value >= listingPrice, "Insufficient listing fee");
+        require(price > 0, "Price must be greater than zero");
         
+        // Refund excess ETH if overpaid
+        if (msg.value > listingPrice) {
+            payable(msg.sender).transfer(msg.value - listingPrice);
+        }
+    
+        // Update the listed token details
         idToListedToken[tokenId].sold = false;
         idToListedToken[tokenId].price = price;
         idToListedToken[tokenId].seller = payable(msg.sender);
         idToListedToken[tokenId].owner = payable(address(this));
-        
+    
         _itemsSold.decrement();
-        _transfer(msg.sender, address(this), tokenId);
+    
+        // Transfer the token to the contract for reselling
+        safeTransferFrom(msg.sender, address(this), tokenId);
     }
+
 }
+
