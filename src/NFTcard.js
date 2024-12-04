@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
@@ -7,6 +7,17 @@ import './NFTcard.css';
 
 function NFTTile({ data }) {
     const navigate = useNavigate();
+    const [isListed, setIsListed] = useState(null);
+
+    useEffect(() => {
+        const fetchTokenInfo = async () => {
+            const listedToken = await getTokenInfo();
+            if (listedToken) {
+                setIsListed(listedToken.sold === false);
+            }
+        };
+        fetchTokenInfo();
+    }, [data.tokenId]);
 
     if (!data || !data.tokenId) {
         return null;
@@ -22,13 +33,10 @@ function NFTTile({ data }) {
         return listedToken;
     };
 
+
     const handleClick = () => {
         navigate(`/nftPage/${data.tokenId}`);
     };
-
-    console.log("data", data);
-    const listedToken = getTokenInfo();
-    const isListed = listedToken.sold === false;
 
     return (
         <Card 

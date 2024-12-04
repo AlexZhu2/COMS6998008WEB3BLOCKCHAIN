@@ -116,12 +116,13 @@ contract ArtystryXMarketplace is ERC721URIStorage {
         require(ownerOf(tokenId) == msg.sender, "You must own the token to resell it");
         require(msg.value >= listingPrice, "Insufficient listing fee");
         require(price > 0, "Price must be greater than zero");
-        
+        // First approve the marketplace to handle the token
+        approve(address(this), tokenId);
         // Refund excess ETH if overpaid
         if (msg.value > listingPrice) {
             payable(msg.sender).transfer(msg.value - listingPrice);
         }
-    
+
         // Update the listed token details
         idToListedToken[tokenId].sold = false;
         idToListedToken[tokenId].price = price;
