@@ -151,9 +151,15 @@ function UploadForm() {
                         <Form.Control 
                             as="select"
                             value={category}
-                            onChange={(e) => setCategory(e.target.value)}
+                            onChange={(e) => {
+                                const selectedValue = e.target.value;
+                                if (selectedValue !== "") {
+                                    setCategory(selectedValue);
+                                }
+                            }}
                             className="upload-input"
                         >
+                            <option value="">Please Select</option>
                             <option value="visual-arts">Visual Arts</option>
                             <option value="poems">Poems</option>
                         </Form.Control>
@@ -181,6 +187,7 @@ function UploadForm() {
                             value={price}
                             onChange={(e) => setPrice(e.target.value)}
                             className="upload-input"
+                            min="0"
                         />
                     </Form.Group>
 
