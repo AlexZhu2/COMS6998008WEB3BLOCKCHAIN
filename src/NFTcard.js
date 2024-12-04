@@ -10,6 +10,7 @@ import ReactMarkdown from 'react-markdown';
 function NFTTile({ data }) {
     const navigate = useNavigate();
     const [metadata, setMetadata] = useState(null);
+    const [isListed, setIsListed] = useState(false);
 
     useEffect(() => {
         const fetchMetadata = async () => {
@@ -21,6 +22,10 @@ function NFTTile({ data }) {
                 const metadata = await response.json();
                 console.log('Fetched metadata:', metadata); // Debug log
                 setMetadata(metadata);
+
+                // Check if the NFT is listed
+                const listedToken = await contract.getListedTokenForId(data.tokenId);
+                setIsListed(!listedToken.sold); // Assuming currentlyListed means it's sold
             } catch (error) {
                 console.error('Error fetching metadata:', error);
             }
@@ -156,8 +161,8 @@ function NFTTile({ data }) {
                     <span className="nft-card-price">
                         {data.price} ETH
                     </span>
-                    <span className="file-type-badge">
-                        {metadata?.fileType?.split('/')[1]?.toUpperCase() || 'FILE'}
+                    <span className={`listing-badge ${isListed ? 'listed' : 'not-listed'}`}>
+                        {isListed ? 'Listed' : 'Not Listed'}
                     </span>
                 </div>
             </Card.Body>
