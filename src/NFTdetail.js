@@ -341,7 +341,7 @@ function NFTDetail({ nfts }) {
             <Button
                 variant="outline-light"
                 className="mb-4"
-                onClick={() => navigate('/')}
+                onClick={() => navigate(-1)}
             >
                 ← Back to Marketplace
             </Button>
