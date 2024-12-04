@@ -11,7 +11,7 @@ contract ArtystryXMarketplace is ERC721URIStorage {
     Counters.Counter private _tokenIds;
     Counters.Counter private _itemsSold;
     address payable owner;
-    uint256 listingPrice = 0.01 ether;
+    uint256 listingPrice = 0 ether;
 
     constructor() ERC721("ArtystryXMarketplace", "ARTX") {
         owner = payable(msg.sender);

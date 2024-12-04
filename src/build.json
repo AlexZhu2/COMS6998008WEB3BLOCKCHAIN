@@ -736,8 +736,8 @@
 		"stateMutability": "view",
 		"type": "function"
 	}
-]
-	"address": "0xc7292e44ceb6ce19f6a0e7d14566f35758c7d1be",
+],
+	"address": "0xcd39e5532de6e7c7e75f57b88a0b09d4d7d62d17",
 	"REACT_APP_PINATA_KEY": "bceb0bdb2c4422657437",
 	"REACT_APP_PINATA_SECRET": "b9ea157bb5b0af1508495083bba67b0470ff4f1957781f1cc939f38cee23d997"
 }
