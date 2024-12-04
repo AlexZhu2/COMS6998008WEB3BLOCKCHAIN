@@ -116,24 +116,41 @@ contract ArtystryXMarketplace is ERC721URIStorage {
         require(ownerOf(tokenId) == msg.sender, "You must own the token to resell it");
         require(msg.value >= listingPrice, "Insufficient listing fee");
         require(price > 0, "Price must be greater than zero");
-        // First approve the marketplace to handle the token
-        approve(address(this), tokenId);
+
+        // Update the listed token details BEFORE transfer
+        idToListedToken[tokenId] = ListedToken(
+            tokenId,
+            payable(msg.sender),
+            payable(address(this)),
+            price,
+            false
+        );
+
+        _itemsSold.decrement();
+
+        // Transfer the token to the contract
+        _transfer(msg.sender, address(this), tokenId);
+        
+        // Pay the listing fee to the contract owner
+        payable(owner).transfer(listingPrice);
+        
         // Refund excess ETH if overpaid
         if (msg.value > listingPrice) {
             payable(msg.sender).transfer(msg.value - listingPrice);
         }
 
-        // Update the listed token details
-        idToListedToken[tokenId].sold = false;
-        idToListedToken[tokenId].price = price;
-        idToListedToken[tokenId].seller = payable(msg.sender);
-        idToListedToken[tokenId].owner = payable(address(this));
-    
-        _itemsSold.decrement();
-    
-        // Transfer the token to the contract for reselling
-        safeTransferFrom(msg.sender, address(this), tokenId);
+        // Emit an event for tracking (optional but recommended)
+        emit TokenListed(tokenId, msg.sender, address(this), price, false);
     }
+
+    // Add this event at the contract level
+    event TokenListed(
+        uint256 indexed tokenId,
+        address indexed seller,
+        address indexed owner,
+        uint256 price,
+        bool sold
+    );
 
 }
 
