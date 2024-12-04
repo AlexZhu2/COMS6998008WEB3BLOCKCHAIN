@@ -15,6 +15,7 @@ function NFTDetail({ nfts }) {
     const [success, setSuccess] = useState(null);
     const [pastOwners, setPastOwners] = useState([]);
     const [showAllOwners, setShowAllOwners] = useState(false);
+    const [isNFTOnSale, setIsNFTOnSale] = useState(false);
 
     const INITIAL_DISPLAY_COUNT = 3;
     const nft = nfts.find(n => n.tokenId === Number(tokenId));
@@ -114,6 +115,7 @@ function NFTDetail({ nfts }) {
 
         // Get the current token data from contract
         const listedToken = await contract.getListedTokenForId(nft.tokenId);
+        console.log("listedToken:", listedToken);
         return listedToken;
     }
 
@@ -269,10 +271,16 @@ function NFTDetail({ nfts }) {
         }
     };
 
-    const listedToken = getTokenInfo();
-    //const isNFTOnSale = nft?.seller.toLowerCase() !== nft?.owner.toLowerCase();
-    const isNFTOnSale = listedToken.sold === false && listedToken.seller !== listedToken.buyer;
-    console.log("isNFTOnSale:", isNFTOnSale);
+    useEffect(() => {
+        const updateSaleStatus = async () => {
+            const listedToken = await getTokenInfo();
+            setIsNFTOnSale(listedToken.sold === false && listedToken.seller !== listedToken.buyer);
+        };
+        
+        if (nft) {
+            updateSaleStatus();
+        }
+    }, [nft]);
 
     const ButtonContent = () => {
         if (isProcessing) {
