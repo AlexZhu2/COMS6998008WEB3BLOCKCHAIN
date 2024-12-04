@@ -181,6 +181,7 @@ function UploadForm() {
                             value={price}
                             onChange={(e) => setPrice(e.target.value)}
                             className="upload-input"
+                            min="0"
                         />
                     </Form.Group>
 
