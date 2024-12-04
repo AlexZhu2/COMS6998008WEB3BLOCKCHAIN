@@ -21,37 +21,177 @@ function UploadForm() {
         setImage(file);
 
         try {
+            // Read and process file content
+            const fileInfo = await processFile(file);
+            
+            // Upload file to IPFS
             const result = await pinFileToIPFS(file);
+            
             if (result.success) {
-                console.log("Image pinned successfully", result.pinataUrl);
+                console.log("File pinned successfully", result.pinataUrl);
                 setFileURL(result.pinataUrl);
+
+                // Update form fields with processed file info
+                if (fileInfo) {
+                    setDetails(fileInfo.preview);
+                    if (!name) {
+                        setName(fileInfo.title || file.name.replace(/\.[^/.]+$/, ''));
+                    }
+                    setCategory(fileInfo.category);
+                }
             } else {
-                console.log("Error pinning image", result.message);
-                updateMessage("Error uploading image: " + result.message);
+                console.log("Error pinning file", result.message);
+                updateMessage("Error uploading file: " + result.message);
             }
         } catch (error) {
             console.error("Upload error:", error);
-            updateMessage("Error uploading image: " + error.message);
+            updateMessage("Error uploading file: " + error.message);
         }
     }
+
+    // New function to process different file types
+    async function processFile(file) {
+        const fileType = file.type || (file.name.endsWith('.md') ? 'text/markdown' : 'text/plain');
+        
+        // If not a text file, return basic info
+        if (!fileType.includes('text/') && !file.name.endsWith('.md')) {
+            return {
+                type: fileType,
+                category: 'visual-arts',
+                properties: {
+                    size: file.size,
+                    lastModified: file.lastModified,
+                    mimeType: fileType
+                }
+            };
+        }
+
+        // Read file content
+        const content = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = (e) => reject(e);
+            reader.readAsText(file);
+        });
+
+        // Process content based on file type
+        if (fileType === 'text/markdown' || file.name.endsWith('.md')) {
+            return processMarkdownFile(content, file);
+        } else {
+            return processTextFile(content, file);
+        }
+    }
+
+    function processMarkdownFile(content, file) {
+        const lines = content.split('\n');
+        let title = file.name.replace(/\.[^/.]+$/, '');
+        let preview = '';
+        
+        // Try to extract title from markdown
+        if (lines[0] && lines[0].startsWith('# ')) {
+            title = lines[0].substring(2).trim();
+            lines.shift(); // Remove title line
+        }
+
+        // Process markdown content
+        preview = lines.join('\n').trim();
+
+        return {
+            type: 'text/markdown',
+            category: 'poems',
+            title,
+            preview: preview.slice(0, 500) + (preview.length > 500 ? '...' : ''),
+            properties: {
+                size: file.size,
+                lastModified: file.lastModified,
+                wordCount: content.split(/\s+/).length,
+                lineCount: lines.length,
+                format: 'markdown',
+                fullContent: content,
+                contentPreview: preview.slice(0, 1000),
+                structure: {
+                    hasTitle: lines[0]?.startsWith('# '),
+                    paragraphs: content.split('\n\n').length
+                }
+            }
+        };
+    }
+
+    function processTextFile(content, file) {
+        const lines = content.split('\n');
+        let title = file.name.replace(/\.[^/.]+$/, '');
+        
+        // Try to extract title from first line
+        if (lines[0] && lines[0].trim()) {
+            title = lines[0].trim();
+            lines.shift(); // Remove title line
+        }
+
+        const preview = lines.join('\n').trim();
+
+        return {
+            type: 'text/plain',
+            category: 'poems',
+            title,
+            preview: preview.slice(0, 500) + (preview.length > 500 ? '...' : ''),
+            properties: {
+                size: file.size,
+                lastModified: file.lastModified,
+                wordCount: content.split(/\s+/).length,
+                lineCount: lines.length,
+                format: 'plain',
+                fullContent: content,
+                contentPreview: preview.slice(0, 1000),
+                structure: {
+                    hasTitle: lines.length > 0,
+                    paragraphs: content.split('\n\n').length
+                }
+            }
+        };
+    }
+
     async function uploadMetadataToIPFS() {
         try {
             if (!image || !name || !category || !details || !price) {
                 throw new Error("Please fill in all fields");
             }
+
+            // Process file again to get full info
+            const fileInfo = await processFile(image);
+
             const metadata = {
-                name: name,
-                category: category,
-                details: details,
-                price: price,
-                image: fileURL
-            }
+                name,
+                category,
+                description: details,
+                price,
+                image: fileURL,
+                fileType: fileInfo.type,
+                properties: fileInfo.properties,
+                attributes: [
+                    {
+                        trait_type: "Category",
+                        value: category
+                    },
+                    {
+                        trait_type: "File Type",
+                        value: fileInfo.type
+                    },
+                    {
+                        trait_type: "Word Count",
+                        value: fileInfo.properties?.wordCount?.toString() || "N/A"
+                    },
+                    {
+                        trait_type: "Format",
+                        value: fileInfo.properties?.format || "N/A"
+                    }
+                ]
+            };
+
             const result = await pinJSONToIPFS(metadata);
             if (result.success) {
                 console.log("Metadata pinned successfully", result.pinataUrl);
                 return result.pinataUrl;
             } else {
-                console.log("Error pinning metadata", result.message);
                 throw new Error("Error pinning metadata: " + result.message);
             }
         } catch (error) {
@@ -59,6 +199,7 @@ function UploadForm() {
             updateMessage("Error uploading metadata: " + error.message);
         }
     }
+
     async function handleSubmit(e) {
         e.preventDefault();
         setIsLoading(true);
@@ -129,13 +270,16 @@ function UploadForm() {
 
                     {/* Image Upload Field */}
                     <Form.Group controlId="formFile" className="mb-3">
-                        <Form.Label className="upload-label">Image File</Form.Label>
+                        <Form.Label className="upload-label">File Upload</Form.Label>
                         <Form.Control 
                             type="file" 
-                            accept="image/*" 
+                            accept="image/*,.txt,.md,.pdf" 
                             onChange={handleImageChange} 
                             className="upload-input"
                         />
+                        <Form.Text className="text-muted">
+                            Supported formats: Images, .txt, .md, .pdf
+                        </Form.Text>
                     </Form.Group>
 
                     {/* Artwork Name */}

@@ -1,91 +1,96 @@
 /* NFT Card Styling */
 .nft-card {
-    border: none;
-    border-radius: 20px;
-    overflow: hidden;
-    background: linear-gradient(135deg, #1f2937, #4b5563); /* Artistic gradient */
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.2s;
     cursor: pointer;
-    width: 100%; /* Full-width within its column */
-    max-width: 400px; /* Larger card size */
-    margin: 0 auto; /* Center the card */
-  }
-  
-  .nft-card:hover {
-    transform: scale(1.05);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-  }
-  
-  /* Image Wrapper with Artistic Overlay */
-  .nft-card-image-wrapper {
+    background: white;
+    border: 1px solid #dee2e6;
+    height: 100%;
+}
+
+.nft-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.nft-card-image-wrapper {
     position: relative;
-    width: 100%;
-    height: 300px;
+    height: 250px;
     overflow: hidden;
-    border-bottom: 3px solid #6b7280; /* Add a border separator */
-  }
-  
-  .nft-card-image {
+    background-color: #ffffff;
+}
+
+/* Updated image preview styles with scaling */
+.image-preview-container {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Ensure the image covers the area */
-    transition: transform 0.3s ease;
-  }
-  
-  .nft-card:hover .nft-card-image {
-    transform: scale(1.1); /* Zoom effect on hover */
-  }
-  
-  .nft-card-image-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.nft-image {
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.3); /* Dark overlay */
-    transition: background 0.3s ease;
-  }
-  
-  .nft-card:hover .nft-card-image-overlay {
-    background: rgba(0, 0, 0, 0.1); /* Lighter overlay on hover */
-  }
-  
-  /* Card Body Styling */
-  .nft-card-body {
-    padding: 20px;
-    text-align: center;
-  }
-  
-  /* Title Styling */
-  .nft-card-title {
-    font-size: 1.5rem !important;
-    font-weight: bold !important;
-    margin-bottom: 15px !important;
-    color: #ffffff !important;
-    text-transform: capitalize;
-    text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.6);
-  }
-  
-  /* Price Styling */
-  .nft-card-price {
-    font-size: 1.2rem;
+    object-fit: contain; /* Changed to contain for proper scaling */
+    object-position: center;
+    padding: 10px; /* Add some padding around the image */
+    transition: transform 0.3s ease; /* Smooth transition for scaling */
+}
+
+/* Hover effect for images */
+.nft-card:hover .nft-image {
+    transform: scale(1.1); /* Scale up on hover */
+}
+
+.file-icon {
+    margin-bottom: 1rem;
+}
+
+.file-info {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: #495057;
+}
+
+.file-type-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    color: #495057;
+}
+
+.text-preview-container,
+.markdown-preview-container {
+    height: 100%;
+    width: 100%;
+    background-color: #ffffff;
+}
+
+.nft-card-title {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: #212529;
+}
+
+.nft-card-price {
     font-weight: bold;
-    color: #10b981; /* Green color for price */
-  }
-  
-  /* Badge Styling */
-  .nft-badge {
-    padding: 6px 12px;
-    font-size: 0.9rem;
-    border-radius: 20px;
-  }
-  
-  /* Glow Effect for Listed Badge */
-  .nft-badge.bg-success {
-    box-shadow: 0 0 10px rgba(16, 185, 129, 0.8); /* Green glow */
-  }
-  
-  .nft-badge.bg-danger {
-    box-shadow: 0 0 10px rgba(239, 68, 68, 0.8); /* Red glow */
-  }
+    color: #0d6efd;
+}
+
+/* Add these new styles for better text contrast */
+.text-preview-container pre,
+.markdown-preview-container pre {
+    background-color: #f8f9fa;
+    color: #212529;
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+}
+
+/* Optional: Add a subtle hover effect for the text container */
+.text-preview-container:hover,
+.markdown-preview-container:hover {
+    background-color: #f8f9fa;
+    transition: background-color 0.3s ease;
+}
   

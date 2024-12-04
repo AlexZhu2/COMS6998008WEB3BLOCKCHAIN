@@ -3,6 +3,9 @@ import { Container, Row, Col, Nav } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import NFTTile from './NFTcard';
 import './marketmain.css';
+import { ethers } from 'ethers';
+import { GetIpfsUrlFromPinata } from './pinata';
+import build from './build.json';
 
 function MarketMain({ nfts }) {
     const [loading, setLoading] = useState(true);
@@ -17,14 +20,13 @@ function MarketMain({ nfts }) {
                 setLoading(true);
                 setError(null);
 
-                // Make sure nfts is an array and has items
                 if (!Array.isArray(nfts)) {
                     console.error('NFTs is not an array:', nfts);
                     setError('Unable to load NFTs');
                     return;
                 }
 
-                // Filter out any invalid NFTs
+                // Filter valid NFTs
                 const validNFTs = nfts.filter(nft => 
                     nft && 
                     nft.tokenId !== undefined && 
@@ -34,8 +36,43 @@ function MarketMain({ nfts }) {
                 );
 
                 setDisplayNFTs(validNFTs);
-                setVisualArtsNFTs(validNFTs.filter(nft => nft.category === 'visual-arts'));
-                setPoemNFTs(validNFTs.filter(nft => nft.category === 'poems'));
+
+                // Fetch and process metadata for each NFT
+                const processedNFTs = await Promise.all(
+                    validNFTs.map(async (nft) => {
+                        try {
+                            const provider = new ethers.BrowserProvider(window.ethereum);
+                            const contract = new ethers.Contract(build.address, build.abi, provider);
+                            
+                            // Get tokenURI and fetch metadata
+                            const tokenURI = await contract.tokenURI(nft.tokenId);
+                            const httpUrl = GetIpfsUrlFromPinata(tokenURI);
+                            const response = await fetch(httpUrl);
+                            const metadata = await response.json();
+                            
+                            return {
+                                ...nft,
+                                metadata
+                            };
+                        } catch (error) {
+                            console.error(`Error fetching metadata for token ${nft.tokenId}:`, error);
+                            return nft;
+                        }
+                    })
+                );
+
+                // Filter based on metadata category
+                const visualArts = processedNFTs.filter(nft => 
+                    nft.metadata?.category === 'visual-arts'
+                );
+                console.log('Visual Arts NFTs:', visualArts);
+                setVisualArtsNFTs(visualArts);
+
+                const poems = processedNFTs.filter(nft => 
+                    nft.metadata?.category === 'poems'
+                );
+                console.log('Poem NFTs:', poems);
+                setPoemNFTs(poems);
             } catch (error) {
                 console.error('Error loading NFTs:', error);
                 setError('Error loading NFTs');
@@ -107,7 +144,7 @@ function MarketMain({ nfts }) {
             {visualArtsNFTs.length > 0 ? (
                 <>
                     <Row xs={1} sm={2} md={3} lg={4} className="g-4">
-                        {displayNFTs.map((nft, idx) => (
+                        {visualArtsNFTs.map((nft, idx) => (
                             <Col key={`${nft.tokenId}-${idx}`}>
                                 <NFTTile data={nft} />
                             </Col>
@@ -129,7 +166,7 @@ function MarketMain({ nfts }) {
             {poemNFTs.length > 0 ? (
                 <>
                     <Row xs={1} sm={2} md={3} lg={4} className="g-4">
-                        {displayNFTs.map((nft, idx) => (
+                        {poemNFTs.map((nft, idx) => (
                             <Col key={`${nft.tokenId}-${idx}`}>
                                 <NFTTile data={nft} />
                             </Col>
