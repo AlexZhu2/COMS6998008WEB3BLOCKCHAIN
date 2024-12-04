@@ -16,18 +16,33 @@ function NFTDetail({ nfts }) {
     const [pastOwners, setPastOwners] = useState([]);
     const [showAllOwners, setShowAllOwners] = useState(false);
     const [isNFTOnSale, setIsNFTOnSale] = useState(false);
+    const [swappedOwners, setSwappedOwners] = useState([]);
 
     const INITIAL_DISPLAY_COUNT = 3;
     const nft = nfts.find(n => n.tokenId === Number(tokenId));
 
     const displayedOwners = showAllOwners
-        ? pastOwners
-        : pastOwners.slice(0, INITIAL_DISPLAY_COUNT);
+        ? swappedOwners
+        : swappedOwners.slice(0, INITIAL_DISPLAY_COUNT);
 
     const renderOwnerAddress = (address) => {
         if (address === ethers.ZeroAddress) return 'Minted';
         return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
     };
+
+    useEffect(() => {
+        if (pastOwners.length > 1) {
+            console.log("Before swap:", pastOwners);
+            const tempOwner = [...pastOwners];
+            const temp = tempOwner[tempOwner.length - 1];
+            tempOwner[tempOwner.length - 1] = tempOwner[tempOwner.length - 2];
+            tempOwner[tempOwner.length - 2] = temp;
+            console.log("After swap:", tempOwner);
+            setSwappedOwners(tempOwner);
+        } else {
+            setSwappedOwners(pastOwners);
+        }
+    }, [pastOwners]);
 
     useEffect(() => {
         if (nft && nft.tokenId) {

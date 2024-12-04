@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Form, Button, Container, Card } from 'react-bootstrap';
+import { Form, Button, Container, Card, Spinner } from 'react-bootstrap';
 import { pinFileToIPFS, pinJSONToIPFS } from './pinata';
 import build from './build';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -14,6 +14,7 @@ function UploadForm() {
     const [category, setCategory] = useState('');
     const [fileURL, setFileURL] = useState('');
     const [message, updateMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false); 
 
     async function handleImageChange(e) {
         const file = e.target.files[0];
@@ -60,6 +61,8 @@ function UploadForm() {
     }
     async function handleSubmit(e) {
         e.preventDefault();
+        setIsLoading(true);
+
         try {
             if (!window.ethereum) {
                 throw new Error("Please install MetaMask to use this feature");
@@ -110,6 +113,8 @@ function UploadForm() {
         } catch (error) {
             console.error("Error:", error);
             updateMessage("Error: " + error.message);
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -192,8 +197,21 @@ function UploadForm() {
 
                     {/* Submit Button */}
                     <div className="text-center">
-                        <Button variant="primary" type="submit" className="upload-button">
-                            Submit
+                        <Button variant="primary" type="submit" className="upload-button" disabled={isLoading}>
+                            {isLoading ? (
+                                <>
+                                    <Spinner
+                                        as="span"
+                                        animation="border"
+                                        size="sm"
+                                        role="status"
+                                        aria-hidden="true"
+                                    />
+                                    {' '}Uploading...
+                                </>
+                            ) : (
+                                "Submit"
+                            )}
                         </Button>
                     </div>
                 </Form>

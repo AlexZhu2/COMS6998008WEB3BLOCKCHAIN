@@ -87,7 +87,7 @@ function MarketMain({ nfts }) {
                 <>
                     <h3 className="text-center market-title">New Release</h3>
                     <Row xs={1} sm={2} md={3} lg={4} className="g-4">
-                        {displayNFTs.slice(0, 4).map((nft, idx) => (
+                        {displayNFTs.slice(-4).reverse().map((nft, idx) => (
                             <Col key={`${nft.tokenId}-${idx}`}>
                                 <NFTTile data={nft} />
                             </Col>
