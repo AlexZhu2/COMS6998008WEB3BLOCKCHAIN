@@ -11,7 +11,7 @@ contract ArtystryXMarketplace is ERC721URIStorage {
     Counters.Counter private _tokenIds;
     Counters.Counter private _itemsSold;
     address payable owner;
-    uint256 listingPrice = 0.01 ether;
+    uint256 listingPrice = 0 ether;
 
     constructor() ERC721("ArtystryXMarketplace", "ARTX") {
         owner = payable(msg.sender);
@@ -113,16 +113,44 @@ contract ArtystryXMarketplace is ERC721URIStorage {
 
     // Function to resell a token
     function resellToken(uint256 tokenId, uint256 price) public payable {
-        require(idToListedToken[tokenId].owner == msg.sender, "Only item owner can perform this operation");
-        require(msg.value == listingPrice, "Price must be equal to listing price");
-        require(price > 0, "Price must be greater than 0");
-        
-        idToListedToken[tokenId].sold = false;
-        idToListedToken[tokenId].price = price;
-        idToListedToken[tokenId].seller = payable(msg.sender);
-        idToListedToken[tokenId].owner = payable(address(this));
-        
+        require(ownerOf(tokenId) == msg.sender, "You must own the token to resell it");
+        require(msg.value >= listingPrice, "Insufficient listing fee");
+        require(price > 0, "Price must be greater than zero");
+
+        // Update the listed token details BEFORE transfer
+        idToListedToken[tokenId] = ListedToken(
+            tokenId,
+            payable(msg.sender),
+            payable(address(this)),
+            price,
+            false
+        );
+
         _itemsSold.decrement();
+
+        // Transfer the token to the contract
         _transfer(msg.sender, address(this), tokenId);
+        
+        // Pay the listing fee to the contract owner
+        payable(owner).transfer(listingPrice);
+        
+        // Refund excess ETH if overpaid
+        if (msg.value > listingPrice) {
+            payable(msg.sender).transfer(msg.value - listingPrice);
+        }
+
+        // Emit an event for tracking (optional but recommended)
+        emit TokenListed(tokenId, msg.sender, address(this), price, false);
     }
+
+    // Add this event at the contract level
+    event TokenListed(
+        uint256 indexed tokenId,
+        address indexed seller,
+        address indexed owner,
+        uint256 price,
+        bool sold
+    );
+
 }
+

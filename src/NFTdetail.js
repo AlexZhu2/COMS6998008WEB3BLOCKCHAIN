@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Spinner, Alert, Modal, Form } from 'react-bootstrap';
 import { ethers } from 'ethers';
 import build from './build.json';
-
+import { GetIpfsUrlFromPinata } from './pinata';
+import './NFTdetail.css';
 function NFTDetail({ nfts }) {
     const { tokenId } = useParams();
     const navigate = useNavigate();
@@ -15,18 +16,37 @@ function NFTDetail({ nfts }) {
     const [success, setSuccess] = useState(null);
     const [pastOwners, setPastOwners] = useState([]);
     const [showAllOwners, setShowAllOwners] = useState(false);
+    const [isNFTOnSale, setIsNFTOnSale] = useState(false);
+    const [swappedOwners, setSwappedOwners] = useState([]);
+    const [metadata, setMetadata] = useState(null);
+    const [loadingMetadata, setLoadingMetadata] = useState(true);
 
     const INITIAL_DISPLAY_COUNT = 3;
     const nft = nfts.find(n => n.tokenId === Number(tokenId));
+    console.log("NFT Data:", nft);
 
     const displayedOwners = showAllOwners
-        ? pastOwners
-        : pastOwners.slice(0, INITIAL_DISPLAY_COUNT);
+        ? swappedOwners
+        : swappedOwners.slice(0, INITIAL_DISPLAY_COUNT);
 
     const renderOwnerAddress = (address) => {
         if (address === ethers.ZeroAddress) return 'Minted';
         return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
     };
+
+    useEffect(() => {
+        if (pastOwners.length > 1) {
+            console.log("Before swap:", pastOwners);
+            const tempOwner = [...pastOwners];
+            const temp = tempOwner[tempOwner.length - 1];
+            tempOwner[tempOwner.length - 1] = tempOwner[tempOwner.length - 2];
+            tempOwner[tempOwner.length - 2] = temp;
+            console.log("After swap:", tempOwner);
+            setSwappedOwners(tempOwner);
+        } else {
+            setSwappedOwners(pastOwners);
+        }
+    }, [pastOwners]);
 
     useEffect(() => {
         if (nft && nft.tokenId) {
@@ -40,6 +60,41 @@ function NFTDetail({ nfts }) {
             };
             fetchData();
         }
+    }, [nft]);
+
+    useEffect(() => {
+        const fetchMetadata = async () => {
+            if (!nft || !nft.tokenId) return;
+            
+            try {
+                setLoadingMetadata(true);
+                const provider = new ethers.BrowserProvider(window.ethereum);
+                const contract = new ethers.Contract(build.address, build.abi, provider);
+                
+                const tokenURI = await contract.tokenURI(nft.tokenId);
+                console.log("Token URI:", tokenURI);
+                
+                const httpUrl = GetIpfsUrlFromPinata(tokenURI);
+                const response = await fetch(httpUrl);
+                if (!response.ok) throw new Error('Failed to fetch metadata');
+                
+                const data = await response.json();
+                console.log("Metadata:", data);
+                
+                if (data.image) {
+                    data.image = GetIpfsUrlFromPinata(data.image);
+                }
+                
+                setMetadata(data);
+            } catch (err) {
+                console.error("Error fetching metadata:", err);
+                setError("Failed to load NFT metadata: " + err.message);
+            } finally {
+                setLoadingMetadata(false);
+            }
+        };
+
+        fetchMetadata();
     }, [nft]);
 
     const fetchPastOwners = useCallback(async () => {
@@ -56,7 +111,6 @@ function NFTDetail({ nfts }) {
                 try {
                     const block = await event.getBlock();
                     return {
-                        // Create a unique key using multiple values
                         id: `${event.transactionHash}-${event.logIndex}-${index}`,
                         from: event.args[0],
                         to: event.args[1],
@@ -70,7 +124,6 @@ function NFTDetail({ nfts }) {
                 }
             }));
             
-            // Filter out any null entries and sort by block number
             const validOwners = processedOwners
                 .filter(owner => owner !== null)
                 .sort((a, b) => b.blockNumber - a.blockNumber);
@@ -89,7 +142,6 @@ function NFTDetail({ nfts }) {
             const signer = await provider.getSigner();
             const userAddress = await signer.getAddress();
             
-            // User owns the NFT if they are either the seller or the owner
             const isOwnerResult = userAddress.toLowerCase() === nft.owner.toLowerCase() || 
                                 userAddress.toLowerCase() === nft.seller.toLowerCase();
             
@@ -112,8 +164,8 @@ function NFTDetail({ nfts }) {
         const signer = await provider.getSigner();
         const contract = new ethers.Contract(build.address, build.abi, signer);
 
-        // Get the current token data from contract
         const listedToken = await contract.getListedTokenForId(nft.tokenId);
+        console.log("listedToken:", listedToken);
         return listedToken;
     }
 
@@ -127,11 +179,9 @@ function NFTDetail({ nfts }) {
             const userAddress = await signer.getAddress();
             const contract = new ethers.Contract(build.address, build.abi, signer);
 
-            // Get the current token data from contract
             const listedToken = await contract.getListedTokenForId(nft.tokenId);
             const priceInWei = listedToken.price;
 
-            // Add pre-purchase checks
             console.log("Pre-purchase checks:", {
                 tokenId: nft.tokenId,
                 contractPrice: priceInWei.toString(),
@@ -141,26 +191,22 @@ function NFTDetail({ nfts }) {
                 isSold: listedToken.sold
             });
 
-            // Verify the token is actually for sale
             if (listedToken.sold) {
                 setError("This NFT is no longer available for purchase");
                 return;
             }
 
-            // Verify user is not the seller
             if (listedToken.seller.toLowerCase() === userAddress.toLowerCase()) {
                 setError("You cannot purchase your own NFT");
                 return;
             }
 
-            // Check user's balance
             const balance = await provider.getBalance(userAddress);
             if (balance < priceInWei) {
                 setError("Insufficient funds to complete the purchase");
                 return;
             }
 
-            // Estimate gas first
             try {
                 const gasEstimate = await contract.executeSale.estimateGas(
                     nft.tokenId,
@@ -179,12 +225,11 @@ function NFTDetail({ nfts }) {
                 gasLimit: 300000
             });
 
-            // Execute the sale
             const transaction = await contract.executeSale(
                 nft.tokenId,
                 { 
-                    value: priceInWei,  // Use exact price from contract
-                    gasLimit: 3000000    // Add explicit gas limit
+                    value: priceInWei, 
+                    gasLimit: 3000000   
                 }
             );
 
@@ -195,7 +240,6 @@ function NFTDetail({ nfts }) {
 
             setSuccess("NFT successfully purchased!");
             
-            // Reload the page after 2 seconds
             setTimeout(() => {
                 window.location.reload();
             }, 2000);
@@ -203,7 +247,6 @@ function NFTDetail({ nfts }) {
         } catch (error) {
             console.error("Purchase error:", error);
             
-            // More detailed error handling
             if (error.message.includes("user rejected")) {
                 setError("Transaction was rejected by user");
             } else if (error.message.includes("insufficient funds")) {
@@ -211,7 +254,6 @@ function NFTDetail({ nfts }) {
             } else if (error.message.includes("asking price")) {
                 setError("Please submit the exact asking price");
             } else if (error.receipt) {
-                // If we have a receipt, the transaction was mined but failed
                 setError("Transaction failed on-chain. The NFT might no longer be available.");
             } else {
                 setError("Error purchasing NFT. Please try again.");
@@ -235,10 +277,8 @@ function NFTDetail({ nfts }) {
             const signer = await provider.getSigner();
             const contract = new ethers.Contract(build.address, build.abi, signer);
 
-            // Convert price to wei
             const priceInWei = ethers.parseEther(listingPrice.toString());
 
-            // First approve the marketplace contract if not already approved
             const isApproved = await contract.isApprovedForAll(nft.owner, build.address);
             if (!isApproved) {
                 console.log("Approving marketplace...");
@@ -248,7 +288,6 @@ function NFTDetail({ nfts }) {
             }
 
             console.log("Listing NFT...");
-            // List the token for sale
             const transaction = await contract.resellToken(nft.tokenId, priceInWei);
             setSuccess("Transaction submitted. Waiting for confirmation...");
             
@@ -256,7 +295,6 @@ function NFTDetail({ nfts }) {
             setSuccess("NFT successfully listed for sale!");
             setShowListModal(false);
             
-            // Reload the page after 2 seconds to show updated state
             setTimeout(() => {
                 window.location.reload();
             }, 2000);
@@ -269,10 +307,16 @@ function NFTDetail({ nfts }) {
         }
     };
 
-    const listedToken = getTokenInfo();
-    //const isNFTOnSale = nft?.seller.toLowerCase() !== nft?.owner.toLowerCase();
-    const isNFTOnSale = listedToken.sold === false && listedToken.seller !== listedToken.buyer;
-    console.log("isNFTOnSale:", isNFTOnSale);
+    useEffect(() => {
+        const updateSaleStatus = async () => {
+            const listedToken = await getTokenInfo();
+            setIsNFTOnSale(listedToken.sold === false && listedToken.seller !== listedToken.buyer);
+        };
+        
+        if (nft) {
+            updateSaleStatus();
+        }
+    }, [nft]);
 
     const ButtonContent = () => {
         if (isProcessing) {
@@ -293,7 +337,6 @@ function NFTDetail({ nfts }) {
 
         console.log("isNFTOnSale:", isNFTOnSale);
 
-        // If NFT is already on sale
         if (isNFTOnSale) {
             if (isOwner) {
                 return "Already Listed";
@@ -301,7 +344,6 @@ function NFTDetail({ nfts }) {
             return "Purchase Now";
         }
 
-        // If user is owner and NFT is not on sale
         if (isOwner) {
             return "List for Sale";
         }
@@ -310,13 +352,11 @@ function NFTDetail({ nfts }) {
     };
 
     const handleButtonClick = () => {
-        // If NFT is on sale and user is not owner
         if (isNFTOnSale && !isOwner) {
             handlePurchase();
             return;
         }
 
-        // If user is owner and NFT is not on sale
         if (isOwner && !isNFTOnSale) {
             setShowListModal(true);
             return;
@@ -359,31 +399,55 @@ function NFTDetail({ nfts }) {
             )}
 
             <Row>
-                {/* Left Side - Image */}
                 <Col md={6}>
-                    <Card className="bg-dark h-100">
-                        <Card.Img
-                            src={nft.image}
-                            alt={nft.name}
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                                maxHeight: '500px',
-                                objectFit: 'contain',
-                                backgroundColor: '#1a1a1a'
-                            }}
-                            className="p-3"
-                            crossOrigin="anonymous"
-                        />
+                    <Card className="bg-light h-100">
+                        {metadata?.fileType?.includes('text/') ? (
+                            <Card.Body className="text-content-container">
+                                <div className="text-center mb-4">
+                                    <i className="fas fa-file-alt text-primary" 
+                                       style={{ fontSize: '48px' }}>
+                                    </i>
+                                    <h3 className="mt-3 text-dark">{metadata?.name || nft.name}</h3>
+                                </div>
+                                <div className="text-content">
+                                    {metadata?.properties?.fullContent || 
+                                     metadata?.content || 
+                                     metadata?.properties?.contentPreview || 
+                                     'No content available'}
+                                </div>
+                                {metadata?.properties && (
+                                    <div className="text-info mt-3">
+                                        <small>
+                                            Words: {metadata.properties.wordCount || 'N/A'} | 
+                                            Lines: {metadata.properties.lineCount || 'N/A'}
+                                        </small>
+                                    </div>
+                                )}
+                            </Card.Body>
+                        ) : metadata?.category === "poems" ? (
+                            <Card.Body className="d-flex align-items-center justify-content-center">
+                                <div className="text-center">
+                                    <i className="fas fa-book-open mb-3" style={{ fontSize: '48px' }}></i>
+                                    <h3>{metadata?.name || nft.name}</h3>
+                                </div>
+                            </Card.Body>
+                        ) : (
+                            <div className="detail-image-container">
+                                <img
+                                    src={metadata?.image || nft.image}
+                                    alt={metadata?.name || nft.name}
+                                    className="detail-image"
+                                    crossOrigin="anonymous"
+                                />
+                            </div>
+                        )}
                     </Card>
                 </Col>
 
-                {/* Right Side - Info */}
                 <Col md={6}>
-                    {/* Title, Price, and Action Button */}
                     <Card className="bg-dark text-white">
                         <Card.Body>
-                            <h1 className="mb-3">{nft.name}</h1>
+                            <h1 className="mb-3">{metadata?.name || nft.name}</h1>
                             <div className="mb-4">
                                 <div className="d-flex justify-content-between align-items-center mb-3">
                                     <h3 className="text-primary mb-0">
@@ -400,8 +464,8 @@ function NFTDetail({ nfts }) {
                                     onClick={handleButtonClick}
                                     disabled={
                                         isProcessing || 
-                                        (isNFTOnSale && isOwner) || // Owner can't purchase their own NFT
-                                        (!isOwner && !isNFTOnSale)  // Non-owners can't interact with unlisted NFTs
+                                        (isNFTOnSale && isOwner) || 
+                                        (!isOwner && !isNFTOnSale)
                                     }
                                 >
                                     <ButtonContent />
@@ -410,17 +474,30 @@ function NFTDetail({ nfts }) {
                         </Card.Body>
                     </Card>
 
-                    {/* Description */}
                     <Card className="bg-dark text-white mt-4">
                         <Card.Body>
                             <h4 className="mb-3">Description</h4>
                             <p className="mb-0">
-                                {nft.description}
+                                {metadata?.description || nft.description}
                             </p>
                         </Card.Body>
                     </Card>
 
-                    {/* Ownership History */}
+                    {metadata?.category === "poems" && metadata?.poem && (
+                        <Card className="bg-dark text-white mt-4">
+                            <Card.Body>
+                                <h4 className="mb-3">Poem</h4>
+                                <div className="poem-content" style={{ 
+                                    whiteSpace: 'pre-line',
+                                    fontFamily: 'Georgia, serif',
+                                    lineHeight: '1.6'
+                                }}>
+                                    {metadata.poem}
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    )}
+
                     <Card className="bg-dark text-white mt-4">
                         <Card.Body>
                             <h4 className="mb-3">Ownership History</h4>
@@ -428,7 +505,6 @@ function NFTDetail({ nfts }) {
                                 <>
                                     {displayedOwners.map((owner, index) => (
                                         <div 
-                                            // Use multiple values to ensure uniqueness
                                             key={`${owner.id}-${index}`}
                                             className={`mb-3 ${
                                                 index !== displayedOwners.length - 1 
@@ -489,7 +565,6 @@ function NFTDetail({ nfts }) {
                 </Col>
             </Row>
 
-            {/* List for Sale Modal */}
             <Modal
                 show={showListModal}
                 onHide={() => {
@@ -567,15 +642,14 @@ function NFTDetail({ nfts }) {
         </Container>
     );
 
-    // Helper function to determine button variant
     function getButtonVariant() {
         if (isProcessing) return "secondary";
         if (isNFTOnSale) {
-            if (isOwner) return "secondary"; // Already listed
-            return "primary"; // Available for purchase
+            if (isOwner) return "secondary";
+            return "primary";
         }
-        if (isOwner) return "primary"; // Available to list
-        return "secondary"; // Not for sale
+        if (isOwner) return "primary";
+        return "secondary";
     }
 }
 
